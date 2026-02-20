@@ -1,140 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Products</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product List</title>
     <style>
         body {
-            font-family: Arial;
-            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-
-        h2 {
-            text-align: center;
-        }
-
-        .search-box {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .search-box input {
+        input, button {
             padding: 8px;
-            width: 250px;
+            margin: 5px;
         }
-
-        .product-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
-
         .product-card {
-            background: white;
-            padding: 15px;
-            width: 220px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px gray;
-            text-align: center;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
         }
-
-        .product-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
-
-        .product-card button {
-            margin-top: 8px;
-            padding: 6px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .delete-btn {
-            background: red;
-            color: white;
-        }
-
-        .buy-btn {
-            background: green;
-            color: white;
+        img {
+            max-width: 100px;
+            display: block;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
-<h2>Products</h2>
+    <h1>Products</h1>
 
-<div class="search-box">
-    <input type="text" placeholder="Search product..." onkeyup="searchProduct(this.value)">
-</div>
+    <!-- Form to add new product -->
+    <div>
+        <input type="text" id="name" placeholder="Product Name">
+        <input type="number" id="price" placeholder="Price">
+        <input type="text" id="description" placeholder="Description">
+        <input type="file" id="image">
+        <button id="addProduct">Add Product</button>
+    </div>
 
-<div class="product-container" id="productList"></div>
+    <h2>Product List</h2>
+    <div id="productList"></div>
 
-<script>
-    let products = JSON.parse(localStorage.getItem("products")) || [];
-    const productList = document.getElementById("productList");
+    <script>
+        // Get products from localStorage or initialize empty array
+        var products = JSON.parse(localStorage.getItem("products")) || [];
 
-    function displayProducts(filteredProducts) {
+        // Function to display products
+        function displayProducts(list) {
+            var productList = document.getElementById("productList");
+            productList.innerHTML = ""; // Clear previous products
 
-        productList.innerHTML = "";
+            list.forEach(function(product, index) {
+                var div = document.createElement("div");
+                div.className = "product-card";
 
-        if (filteredProducts.length === 0) {
-            productList.innerHTML = "<h3>No products available</h3>";
-            return;
+                div.innerHTML = `
+                    <strong>${product.name}</strong><br>
+                    Price: ₹${product.price}<br>
+                    Description: ${product.description}<br>
+                    ${product.image ? `<img src="${product.image}" alt="${product.name}">` : ""}
+                    <button onclick="deleteProduct(${index})">Delete</button>
+                `;
+                productList.appendChild(div);
+            });
         }
 
-        filteredProducts.forEach(function(product, index) {
-            productList.innerHTML += `
-                <div class="product-card">
-                    <img src="${product.image}">
-                    <h3>${product.name}</h3>
-                    <p>₹ ${product.price}</p>
-                    <p>${product.description}</p>
+        // Function to add a new product
+        document.getElementById("addProduct").addEventListener("click", function() {
+            var name = document.getElementById("name").value;
+            var price = document.getElementById("price").value;
+            var description = document.getElementById("description").value;
+            var imageFile = document.getElementById("image").files[0];
 
-                    <button class="buy-btn" onclick="placeOrder('${product.name}')">
-                        Buy Now
-                    </button>
+            if (!name || !price || !description) {
+                alert("Please fill all fields!");
+                return;
+            }
 
-                    <button class="delete-btn" onclick="deleteProduct(${index})">
-                        Delete
-                    </button>
-                </div>
-            `;
+            if (imageFile) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var imageData = e.target.result;
+
+                    products.push({ name, price, description, image: imageData });
+                    localStorage.setItem("products", JSON.stringify(products));
+                    displayProducts(products);
+
+                    // Clear form
+                    document.getElementById("name").value = "";
+                    document.getElementById("price").value = "";
+                    document.getElementById("description").value = "";
+                    document.getElementById("image").value = "";
+                }
+                reader.readAsDataURL(imageFile);
+            } else {
+                products.push({ name, price, description, image: "" });
+                localStorage.setItem("products", JSON.stringify(products));
+                displayProducts(products);
+
+                // Clear form
+                document.getElementById("name").value = "";
+                document.getElementById("price").value = "";
+                document.getElementById("description").value = "";
+            }
         });
-    }
 
-    function deleteProduct(index) {
-        products.splice(index, 1);
-        localStorage.setItem("products", JSON.stringify(products));
+        // Function to delete a product
+        function deleteProduct(index) {
+            products.splice(index, 1);
+            localStorage.setItem("products", JSON.stringify(products));
+            displayProducts(products);
+        }
+
+        // Initial display
         displayProducts(products);
-    }
-
-    function searchProduct(keyword) {
-        const filtered = products.filter(product =>
-            product.name.toLowerCase().includes(keyword.toLowerCase())
-        );
-        displayProducts(filtered);
-    }
-
-   function placeOrder(productName) {
-
-    let orders = JSON.parse(localStorage.getItem("orders")) || [];
-
-    orders.push({
-        name: productName,
-        date: new Date().toLocaleString()
-    });
-
-    localStorage.setItem("orders", JSON.stringify(orders));
-
-    alert("Order placed successfully for " + productName + " 🎉");
-}
-    }
-   displayProducts(products);
-</script>
+    </script>
 
 </body>
 </html>
