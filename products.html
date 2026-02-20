@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products</title>
+
+    <style>
+    body {
+        font-family: Arial;
+        background-color: #f2f2f2;
+    }
+
+    .product-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .product-card {
+        background: white;
+        width: 250px;
+        margin: 15px;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+        text-align: center;
+    }
+
+    .product-card img {
+        width: 200px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .product-card button {
+        background: orange;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #searchInput {
+        padding: 8px;
+        width: 250px;
+    }
+    </style>
+
+</head>
+<body>
+
+<h2 style="text-align:center;">Products</h2>
+
+<div style="text-align:center; margin-bottom:20px;">
+    <input type="text" id="searchInput"
+    placeholder="Search product..."
+    onkeyup="searchProduct()">
+</div>
+
+<div class="product-container" id="productList"></div>
+
+<script>
+
+var products = JSON.parse(localStorage.getItem("products")) || [];
+var productList = document.getElementById("productList");
+
+function displayProducts(filteredProducts) {
+
+    productList.innerHTML = "";
+
+    filteredProducts.forEach(function(product, index) {
+
+        productList.innerHTML += `
+            <div class="product-card">
+                <img src="${product.image}">
+                <h3>${product.name}</h3>
+                <p>₹ ${product.price}</p>
+                <p>${product.description}</p>
+                <button onclick="deleteProduct(${index})">Delete</button>
+            </div>
+        `;
+    });
+}
+
+function searchProduct() {
+    var searchValue = document.getElementById("searchInput").value.toLowerCase();
+
+    var filtered = products.filter(function(product) {
+        return product.name.toLowerCase().includes(searchValue);
+    });
+
+    displayProducts(filtered);
+}
+
+function deleteProduct(index) {
+    products.splice(index, 1);
+    localStorage.setItem("products", JSON.stringify(products));
+    displayProducts(products);
+}
+
+displayProducts(products);
+
+</script>
+
+</body>
+</html>
