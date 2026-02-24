@@ -1,123 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        input, button {
-            padding: 8px;
-            margin: 5px;
-        }
-        .product-card {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px 0;
-        }
-        img {
-            max-width: 100px;
-            display: block;
-            margin-top: 5px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products</title>
+
+<style>
+body { font-family: Arial; padding:20px; }
+
+input, button {
+    padding:8px;
+    margin:5px;
+}
+
+.product-card {
+    border:1px solid #ccc;
+    padding:10px;
+    margin:10px 0;
+}
+</style>
+
 </head>
 <body>
 
-    <h1>Products</h1>
+<h2>Add Product</h2>
 
-    <!-- Form to add new product -->
-    <div>
-        <input type="text" id="name" placeholder="Product Name">
-        <input type="number" id="price" placeholder="Price">
-        <input type="text" id="description" placeholder="Description">
-        <input type="file" id="image">
-        <button id="addProduct">Add Product</button>
-    </div>
+<input type="text" id="name" placeholder="Product Name">
+<input type="number" id="price" placeholder="Price">
+<input type="text" id="description" placeholder="Description">
+<input type="file" id="image">
 
-    <h2>Product List</h2>
-    <div id="productList"></div>
+<button id="addProduct">Add Product</button>
 
-    <script>
-        // Get products from localStorage or initialize empty array
-        var products = JSON.parse(localStorage.getItem("products")) || [];
+<hr>
 
-        // Function to display products
-        function displayProducts(list) {
-            var productList = document.getElementById("productList");
-            productList.innerHTML = ""; // Clear previous products
+<input type="text" id="search" placeholder="Search products...">
 
-            list.forEach(function(product, index) {
-                var div = document.createElement("div");
-                div.className = "product-card";
+<h2>Product List</h2>
+<div id="productList"></div>
 
-                div.innerHTML = `
-                    <strong>${product.name}</strong><br>
-                    Price: ₹${product.price}<br>
-                    Description: ${product.description}<br>
-                    ${product.image ? `<img src="${product.image}" alt="${product.name}">` : ""}
-                    <button onclick="deleteProduct(${index})">Delete</button>
-                `;
-                productList.appendChild(div);
-            });
-        }
+<script>
 
-        // Function to add a new product
-        document.getElementById("addProduct").addEventListener("click", function() {
-            var name = document.getElementById("name").value;
-            var price = document.getElementById("price").value;
-            var description = document.getElementById("description").value;
-            var imageFile = document.getElementById("image").files[0];
+var products = JSON.parse(localStorage.getItem("products")) || [];
 
-            if (!name || !price || !description) {
-                alert("Please fill all fields!");
-                return;
-            }
+function displayProducts(list){
 
-            if (imageFile) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var imageData = e.target.result;
+    var productList = document.getElementById("productList");
+    productList.innerHTML = "";
 
-                    products.push({ name, price, description, image: imageData });
-                    localStorage.setItem("products", JSON.stringify(products));
-                    displayProducts(products);
+    list.forEach(function(product,index){
 
-                    // Clear form
-                    document.getElementById("name").value = "";
-                    document.getElementById("price").value = "";
-                    document.getElementById("description").value = "";
-                    document.getElementById("image").value = "";
-                }
-                reader.readAsDataURL(imageFile);
-            } else {
-                products.push({ name, price, description, image: "" });
-                localStorage.setItem("products", JSON.stringify(products));
-                displayProducts(products);
+        var div = document.createElement("div");
+        div.className="product-card";
 
-                // Clear form
-                document.getElementById("name").value = "";
-                document.getElementById("price").value = "";
-                document.getElementById("description").value = "";
-            }
-        });
+        div.innerHTML = `
+            <b>${product.name}</b><br>
+            ₹${product.price}<br>
+            ${product.description}<br>
+            ${product.image ? `<img src="${product.image}" width="100">` : ""}
+            <br>
+            <button onclick="deleteProduct(${index})">Delete</button>
+        `;
 
-        // Function to delete a product
-        function deleteProduct(index) {
-            products.splice(index, 1);
-            localStorage.setItem("products", JSON.stringify(products));
+        productList.appendChild(div);
+
+    });
+
+}
+
+document.getElementById("addProduct").addEventListener("click", function(){
+
+    var name = document.getElementById("name").value;
+    var price = document.getElementById("price").value;
+    var description = document.getElementById("description").value;
+    var imageFile = document.getElementById("image").files[0];
+
+    if(!name || !price || !description){
+        alert("Fill all fields!");
+        return;
+    }
+
+    if(imageFile){
+
+        var reader = new FileReader();
+
+        reader.onload = function(event){
+
+            var imageData = event.target.result;
+
+            var newProduct = {
+                name:name,
+                price:price,
+                description:description,
+                image:imageData
+            };
+
+            products.push(newProduct);
+            localStorage.setItem("products",JSON.stringify(products));
+
             displayProducts(products);
+            clearForm();
         }
 
-        // Initial display
+        reader.readAsDataURL(imageFile);
+
+    } else {
+
+        var newProduct = {
+            name:name,
+            price:price,
+            description:description,
+            image:""
+        };
+
+        products.push(newProduct);
+        localStorage.setItem("products",JSON.stringify(products));
+
         displayProducts(products);
-    </script>
+        clearForm();
+    }
+
+});
+
+function deleteProduct(index){
+
+    var confirmDelete = confirm("Delete this product?");
+
+    if(confirmDelete){
+        products.splice(index,1);
+        localStorage.setItem("products",JSON.stringify(products));
+        displayProducts(products);
+    }
+
+}
+
+document.getElementById("search").addEventListener("input", function(){
+
+    var query = this.value.toLowerCase();
+
+    var filtered = products.filter(function(product){
+        return product.name.toLowerCase().includes(query) ||
+               product.description.toLowerCase().includes(query);
+    });
+
+    displayProducts(filtered);
+
+});
+
+function clearForm(){
+    document.getElementById("name").value="";
+    document.getElementById("price").value="";
+    document.getElementById("description").value="";
+    document.getElementById("image").value="";
+}
+
+displayProducts(products);
+
+</script>
 
 </body>
 </html>
-
 
 
