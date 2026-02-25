@@ -1,163 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Products</title>
-
-<style>
-body { font-family: Arial; padding:20px; }
-
-input, button {
-    padding:8px;
-    margin:5px;
-}
-
-.product-card {
-    border:1px solid #ccc;
-    padding:10px;
-    margin:10px 0;
-}
-</style>
-
+    <title>Products</title>
 </head>
 <body>
 
-<h2>Add Product</h2>
+<h2>Products</h2>
 
-<input type="text" id="name" placeholder="Product Name">
-<input type="number" id="price" placeholder="Price">
-<input type="text" id="description" placeholder="Description">
-<input type="file" id="image">
-
-<button id="addProduct">Add Product</button>
-
-<hr>
-
-<input type="text" id="search" placeholder="Search products...">
-
-<h2>Product List</h2>
 <div id="productList"></div>
 
 <script>
-
 var products = JSON.parse(localStorage.getItem("products")) || [];
 
-function displayProducts(list){
+var productList = document.getElementById("productList");
 
-    var productList = document.getElementById("productList");
+function displayProducts(){
     productList.innerHTML = "";
 
-    list.forEach(function(product,index){
-
-        var div = document.createElement("div");
-        div.className="product-card";
-
-        div.innerHTML = `
-            <b>${product.name}</b><br>
-            ₹${product.price}<br>
-            ${product.description}<br>
-            ${product.image ? `<img src="${product.image}" width="100">` : ""}
-            <br>
-            <button onclick="deleteProduct(${index})">Delete</button>
+    products.forEach(function(product){
+        productList.innerHTML += `
+            <div style="border:1px solid black; padding:10px; margin:10px;">
+                <h3>${product.name}</h3>
+                <p>Price: ₹${product.price}</p>
+                <p>${product.description}</p>
+                <img src="${product.image}" width="100"><br><br>
+                <button onclick="placeOrder('${product.name}')">Buy Now</button>
+            </div>
         `;
-
-        productList.appendChild(div);
-
     });
-
 }
 
-document.getElementById("addProduct").addEventListener("click", function(){
-
-    var name = document.getElementById("name").value;
-    var price = document.getElementById("price").value;
-    var description = document.getElementById("description").value;
-    var imageFile = document.getElementById("image").files[0];
-
-    if(!name || !price || !description){
-        alert("Fill all fields!");
-        return;
-    }
-
-    if(imageFile){
-
-        var reader = new FileReader();
-
-        reader.onload = function(event){
-
-            var imageData = event.target.result;
-
-            var newProduct = {
-                name:name,
-                price:price,
-                description:description,
-                image:imageData
-            };
-
-            products.push(newProduct);
-            localStorage.setItem("products",JSON.stringify(products));
-
-            displayProducts(products);
-            clearForm();
-        }
-
-        reader.readAsDataURL(imageFile);
-
-    } else {
-
-        var newProduct = {
-            name:name,
-            price:price,
-            description:description,
-            image:""
-        };
-
-        products.push(newProduct);
-        localStorage.setItem("products",JSON.stringify(products));
-
-        displayProducts(products);
-        clearForm();
-    }
-
-});
-
-function deleteProduct(index){
-
-    var confirmDelete = confirm("Delete this product?");
-
-    if(confirmDelete){
-        products.splice(index,1);
-        localStorage.setItem("products",JSON.stringify(products));
-        displayProducts(products);
-    }
-
-document.getElementById("search").addEventListener("input", function(){
-
-    var query = this.value.toLowerCase();
-
-    var filtered = products.filter(function(product){
-        return product.name.toLowerCase().includes(query) ||
-               product.description.toLowerCase().includes(query);
-    });
-
-    displayProducts(filtered);
-
-});
-
-function clearForm(){
-    document.getElementById("name").value="";
-    document.getElementById("price").value="";
-    document.getElementById("description").value="";
-    document.getElementById("image").value="";
+function placeOrder(productName){
+    var orders = JSON.parse(localStorage.getItem("orders")) || [];
+    orders.push(productName);
+    localStorage.setItem("orders", JSON.stringify(orders));
+    alert("Order Placed for " + productName);
 }
 
-displayProducts(products);
-
+displayProducts();
 </script>
 
 </body>
 </html>
+
 
 
 
